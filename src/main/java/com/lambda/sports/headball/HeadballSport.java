@@ -4,7 +4,6 @@ import com.lambda.sports.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Headball sport module.
  *
@@ -44,6 +43,12 @@ public class HeadballSport extends AbstractSport {
         "Walenty Gajewski",    "Xena Kubiak",        "Zygmunt Sawicki"
     };
 
+    private static final String[] COACH_NAMES = {
+        "Andrzej Trener",   "Bogusław Kowalski", "Czesław Nowak",   "Dariusz Mistrz",
+        "Edward Pawlak",    "Franciszek Lis",    "Gustaw Borowski", "Henryk Wiśniewski",
+        "Iwona Tomczak",    "Joanna Sosnowska",  "Krystyna Witek",  "Lidia Górska"
+    };
+
     // ── Constructor ──────────────────────────────────────────────────────────
 
     /**
@@ -57,13 +62,15 @@ public class HeadballSport extends AbstractSport {
     // ── AbstractSport implementation ─────────────────────────────────────────
 
     /**
-     * Creates {@code count} teams, each with 9 players (6 starters + 3 subs).
-     * Skills are assigned deterministically from the index so tests are stable.
+     * Creates {@code count} teams, each with 9 players (6 starters + 3 subs)
+     * and 2 coaches.  Skills are assigned deterministically from the index
+     * so tests are stable.
      */
     @Override
     public List<Team> createTeams(int count) {
         List<Team> teams = new ArrayList<>();
         int playerIndex = 0;
+        int coachIndex  = 0;
         for (int t = 0; t < count; t++) {
             Team team = new Team(TEAM_NAMES[t % TEAM_NAMES.length]);
             team.setTactic(new HeadballTactic(HeadballTacticType.BALANCED));
@@ -77,6 +84,13 @@ public class HeadballSport extends AbstractSport {
                 double jump    = 4.0 + (p * 0.7) % 6.0;
                 team.addPlayer(new HeadballPlayer(pName, 20 + (p % 15), heading, jump));
             }
+
+            // Two coaches per team — one head coach (~7.0 skill), one assistant (~5.0)
+            team.addCoach(new Coach(COACH_NAMES[coachIndex++ % COACH_NAMES.length],
+                                     45 + (t % 20), 7.0));
+            team.addCoach(new Coach(COACH_NAMES[coachIndex++ % COACH_NAMES.length],
+                                     35 + (t % 15), 5.0));
+
             teams.add(team);
         }
         return teams;
@@ -85,5 +99,10 @@ public class HeadballSport extends AbstractSport {
     @Override
     public MatchResult simulateMatch(Team home, Team away, MatchEngine engine) {
         return engine.simulateMatch(home, away, numQuarters);
+    }
+
+    @Override
+    public LiveMatch startLiveMatch(Team home, Team away) {
+        return new HeadballLiveMatch(home, away, numQuarters);
     }
 }

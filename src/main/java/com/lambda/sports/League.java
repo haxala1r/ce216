@@ -6,13 +6,14 @@ import java.util.*;
  * Manages the full season: recording results and producing a sorted standings
  * table with the correct tie-breaking rules.
  *
- * <p>Tie-breaking order (Headball specification):</p>
+ * <p>Tie-breaking order (Headball specification, applied generically to any sport):</p>
  * <ol>
  *   <li>Total points (descending)</li>
  *   <li>Head-to-head points between the tied teams</li>
  *   <li>Goal difference (descending)</li>
  *   <li>Goals scored (descending)</li>
- *   <li>Alphabetical team name (deterministic "coin-toss" proxy)</li>
+ *   <li>Coin toss — driven by a seeded {@link Random} so the result is
+ *       reproducible for a given league instance, but unbiased between teams</li>
  * </ol>
  */
 public class League {
@@ -22,13 +23,24 @@ public class League {
     private final List<Team> teams;
     private final List<MatchResult> results;
     private final Map<Team, LeagueStanding> standings;
+    /** Seeded RNG used only for the final coin-toss tiebreaker. */
+    private final Random tieBreakRandom;
 
     public League(String name, AbstractSport sport, List<Team> teams) {
-        this.name      = name;
-        this.sport     = sport;
-        this.teams     = new ArrayList<>(teams);
-        this.results   = new ArrayList<>();
-        this.standings = new LinkedHashMap<>();
+        this(name, sport, teams, name.hashCode());
+    }
+
+    /**
+     * @param coinTossSeed seed for the tie-break coin toss; passing the same
+     *                     seed yields the same standings order on identical input
+     */
+    public League(String name, AbstractSport sport, List<Team> teams, long coinTossSeed) {
+        this.name           = name;
+        this.sport          = sport;
+        this.teams          = new ArrayList<>(teams);
+        this.results        = new ArrayList<>();
+        this.standings      = new LinkedHashMap<>();
+        this.tieBreakRandom = new Random(coinTossSeed);
         for (Team t : teams) standings.put(t, new LeagueStanding(t));
     }
 
@@ -61,8 +73,8 @@ public class League {
             // 4. Goals scored
             if (b.getGoalsFor() != a.getGoalsFor())
                 return Integer.compare(b.getGoalsFor(), a.getGoalsFor());
-            // 5. Alphabetical (deterministic)
-            return a.getTeam().getName().compareTo(b.getTeam().getName());
+            // 5. Coin toss (seeded → reproducible, but unbiased between teams)
+            return tieBreakRandom.nextBoolean() ? -1 : 1;
         });
         return list;
     }

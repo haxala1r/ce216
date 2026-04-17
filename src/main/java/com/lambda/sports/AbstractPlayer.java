@@ -7,7 +7,7 @@ package com.lambda.sports;
 public abstract class AbstractPlayer {
 
     protected final String name;
-    protected final int age;
+    protected int age;
     protected boolean injured;
     protected int injuryGamesLeft;
 
@@ -23,6 +23,23 @@ public abstract class AbstractPlayer {
      * Used by MatchEngine to calculate match outcomes.
      */
     public abstract double getSkillRating();
+
+    /**
+     * Applies a training session to this player.  Each subclass decides which
+     * of its sport-specific attributes to boost; values are clamped to the
+     * 0 – 10 scale so training cannot push a player past the maximum.
+     *
+     * @param intensity the training boost to apply (typically 0.0 – 0.5)
+     */
+    public abstract void applyTraining(double intensity);
+
+    /**
+     * Increments this player's age by one year. Called by
+     * {@code GameSession.advanceToNextSeason()} when a new season starts.
+     */
+    public void ageByOneYear() {
+        this.age++;
+    }
 
     /**
      * Marks the player as injured for the given number of games.

@@ -38,6 +38,13 @@ public abstract class AbstractSport {
     public abstract MatchResult simulateMatch(Team home, Team away, MatchEngine engine);
 
     /**
+     * Creates a {@link LiveMatch} for interactive play.  The returned object
+     * lets callers (typically the GUI) step through the match one period at
+     * a time, allowing tactic changes and substitutions between periods.
+     */
+    public abstract LiveMatch startLiveMatch(Team home, Team away);
+
+    /**
      * Generates a complete double round-robin schedule (every team plays every
      * other team once at home and once away) and returns the full list of results.
      */

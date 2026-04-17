@@ -5,23 +5,30 @@ import java.util.List;
 
 /**
  * Represents a team in any sport.
- * Holds the squad, current tactic, and provides substitution logic.
+ * Holds the squad, coaching staff, current tactic, and substitution logic.
  */
 public class Team {
 
-    private final String name;
+    private final String               name;
     private final List<AbstractPlayer> players;
-    private ITactic tactic;
+    private final List<Coach>          coaches;
+    private ITactic                    tactic;
 
     public Team(String name) {
         this.name    = name;
         this.players = new ArrayList<>();
+        this.coaches = new ArrayList<>();
         this.tactic  = new DefaultTactic();
     }
 
     /** Adds a player to the squad. */
     public void addPlayer(AbstractPlayer player) {
         players.add(player);
+    }
+
+    /** Adds a coach to the staff. */
+    public void addCoach(Coach coach) {
+        coaches.add(coach);
     }
 
     /**
@@ -77,9 +84,19 @@ public class Team {
         return sum / pool.size();
     }
 
+    /**
+     * Runs a single training week: every coach trains the entire squad once.
+     * Multiple coaches stack their boosts.  Injured players are skipped
+     * inside {@link Coach#train(List)} since they cannot train while recovering.
+     */
+    public void runTraining() {
+        for (Coach c : coaches) c.train(players);
+    }
+
     // ── Getters ──────────────────────────────────────────────────────────────
 
     public String               getName()    { return name; }
     public List<AbstractPlayer> getPlayers() { return players; }
+    public List<Coach>          getCoaches() { return coaches; }
     public ITactic              getTactic()  { return tactic; }
 }
